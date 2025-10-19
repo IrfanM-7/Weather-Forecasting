@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0; padding: 0;
+        min-width: 100vw;
+        min-height: 100vh;
+      }
+      body {
+        min-height: 100vh;
+        min-width: 100vw;
+        width: 100vw;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #6a89cc 0%, #b8e994 85%);
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+      .container {
+        width: 480px;
+        max-width: 97vw;
+        min-height: 100vh;
+        background: rgba(255,255,255,0.17);
+        backdrop-filter: blur(24px);
+        border-radius: 32px;
+        box-shadow: 0 8px 40px rgba(68, 88, 105, 0.09);
+        padding: 38px 32px 36px 32px;
+        color: #222e;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+      }
+      .top-bar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .menu-btn, .settings-btn {
+        background: none;
+        border: none;
+        font-size: 2.2rem;
+        color: #222c;
+        cursor: pointer;
+        border-radius: 18px;
+        transition: background 0.17s;
+        padding: 2px 8px;
+      }
+      .menu-btn:active, .settings-btn:active { background: #fff3; }
+      .menu-btn:focus, .settings-btn:focus { outline: 2px solid #70e1f599; }
+      .settings-title {
+        font-size: 30px;
+        font-weight: bold;
+        color: #343c;
+        letter-spacing: 2px;
+        flex: 1 1 auto;
+        text-align: center;
+        margin: 0 8px;
+        text-shadow: 0px 2px 12px #b8e99488;
+      }
+      @media screen and (max-width:900px){
+        body { justify-content: center; }
+        .container {
+          min-height: auto;
+          width: 99vw;
+          padding: 12px 2vw;
+          border-radius: 18px;
+        }
+      }
+      .settings-modal {
+        position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+        background: rgba(20,20,34,0.22);
+        z-index: 900;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .settings-card {
+        background: linear-gradient(135deg, rgba(70,80,145,0.31) 0%, rgba(232,238,255,0.19) 100%);
+        backdrop-filter: blur(17px);
+        padding: 24px 30px 18px 30px;
+        border-radius: 22px;
+        box-shadow: 0 8px 64px #5c67f944;
+        min-width: 290px;
+        border: 1.2px solid rgba(115,120,180,0.13);
+      }
+      .settings-card h3 {margin:12px 0 18px 0;}
+      .settings-card ul {margin:0; padding:0 0 0 0;}
+      .settings-card li {margin:0 0 14px 0; list-style:none;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <button class="menu-btn" aria-label="Open menu">
+                <i class='bx bx-menu'></i>
+            </button>
+            <span class="settings-title">Weather Dashboard</span>
+            <button class="settings-btn" aria-label="Settings">
+                <i class='bx bx-cog'></i>
+            </button>
+        </div>
+        <!-- Search Box -->
+        <div class="search-box">
+            <i class='bx bx-map'></i>
+            <input type="text" id="city-input" placeholder="Enter city name">
+            <button class="search-btn" id="search-btn">
+                <i class='bx bx-search'></i>
+            </button>
+        </div>
+        <!-- Weather Display -->
+        <div class="weather-box">
+            <div class="weather-image">
+                <img src="images/clear.png" alt="Weather Icon" id="weather-icon">
+            </div>
+            <p class="temperature" id="temperature">--°C</p>
+            <p class="description" id="description">--</p>
+            <div class="location" id="location">
+                <i class='bx bx-location-plus'></i>
+                <span>--</span>
+            </div>
+        </div>
+        <!-- Weather Details -->
+        <div class="weather-details">
+            <div class="humidity">
+                <i class='bx bx-water'></i>
+                <div class="info">
+                    <span id="humidity-value">--%</span>
+                    <p>Humidity</p>
+                </div>
+            </div>
+            <div class="wind">
+                <i class='bx bx-wind'></i>
+                <div class="info">
+                    <span id="wind-value">-- km/h</span>
+                    <p>Wind Speed</p>
+                </div>
+            </div>
+        </div>
+        <!-- Error Message -->
+        <div class="error-box" id="error-box" style="display: none;">
+            <img src="images/404.png" alt="Error">
+            <p>City not found!</p>
+        </div>
+        <!-- Temperature Chart -->
+        <div class="chart-wrapper">
+            <canvas id="tempChart" width="350" height="180"></canvas>
+        </div>
+    </div>
+    <!-- Modal for settings options -->
+    <div id="settings-modal" class="settings-modal" style="display:none;">
+        <div class="settings-card">
+            <button onclick="document.getElementById('settings-modal').style.display='none'" style="float:right;font-size:1.5rem;background:none;border:none;cursor:pointer;">&times;</button>
+            <h3>Settings</h3>
+            <ul>
+                <li>Theme:
+                    <select>
+                        <option>Classic</option>
+                        <option>Dark</option>
+                        <option>Glass</option>
+                    </select>
+                </li>
+                <li>Temperature Units:
+                    <select>
+                        <option>°C (Celsius)</option>
+                        <option>°F (Fahrenheit)</option>
+                    </select>
+                </li>
+                <li>Show 7-day Forecast:
+                    <input type="checkbox" checked>
+                </li>
+                <li>Show Rain Prediction:
+                    <input type="checkbox" checked>
+                </li>
+                <li>Show "Sunrise/Sunset" Info:
+                    <input type="checkbox" checked>
+                </li>
+                <li>Notifications:
+                    <select>
+                        <option>Disabled</option>
+                        <option>Severe Weather</option>
+                        <option>Daily Summary</option>
+                    </select>
+                </li>
+                <li>
+                    <button style="margin-top:8px;width:100%;border-radius:9px;padding:5px 0;background:#efefef;border:none;color:#444a;font-weight:bold;cursor:pointer;">
+                        Reset to Defaults
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        document.querySelector('.settings-btn').onclick = function(){
+            document.getElementById('settings-modal').style.display = 'flex';
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
